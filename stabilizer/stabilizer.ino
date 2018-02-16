@@ -48,9 +48,9 @@
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 //#include "MPU6050.h" // not necessary if using MotionApps include file
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
-#endif
+//#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+  #include <Wire.h>
+//#endif
 
 #define LED_PIN 13
 bool blinkState = true;
@@ -99,20 +99,21 @@ void setup()
   Servo1.attach(10);  // attaches the servo on D10 to the servo object
   Servo2.attach(11);  // Second servo on D11
   delay(50);
-  Servo1.write(0);	// These are command checks to see if the servos work and
-  Servo2.write(60);	// to help w/ the initial installation.
-  delay(500);		// Make sure these movements are clear from the rest of the chassis.
-  Servo1.write(180);
-  Servo2.write(120);
-  delay(500);
-  Servo1.write(0);
-  Servo2.write(90);
-  delay(500);
+//  Servo1.write(0);	// These are command checks to see if the servos work and
+//  Servo2.write(60);	// to help w/ the initial installation.
+//  delay(500);		// Make sure these movements are clear from the rest of the chassis.
+//  Servo1.write(180);
+//  Servo2.write(120);
+//  delay(500);
+//  Servo1.write(0);
+//  Servo2.write(90);
+//  delay(500);
 
   // join I2C bus (I2Cdev library doesn't do this automatically)
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
-  TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
+//  TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
+  Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
 #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
   Fastwire::setup(400, true);
 #endif
@@ -125,7 +126,6 @@ void setup()
   mpu.initialize();
 
   // verify connection
-  Serial.println(F("Testing device connections..."));
   Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
 
   // load and configure the DMP
@@ -178,7 +178,7 @@ void setup()
 void loop(void)
 {
   processAccelGyro();
-}   // loop()
+}
 
 
 
@@ -245,10 +245,4 @@ void processAccelGyro()
     mpu.resetFIFO();
 
   } // if (mpuIntStatus & 0x02)
-}  // processAccelGyro()
-
-
-
-
-
-
+}
