@@ -38,16 +38,25 @@
 #include "Wire.h"
 #endif
 
+// Set to 1 if you want the Serial hookup 
+#define DEBUG 0
+
 #define LED_PIN 13
 bool blinkState = true;
 
 Servo Servo1;   // First Servo off the chassis
-#define Servo1Pin 10
 Servo Servo2;   // Second Servo off the chassis
-#define Servo2Pin 11
 
-#define HeadPin 9
+int Servo1Pin = 10;
+int Servo2Pin = 11;
+int HeadPin   = 6;
+int ButtonLEDPin = 7;
+
+int Servo1Pos = 0;
+int Servo2Pos = 0;
+
 #define MOTOR_TIME 1000
+#define BAUD_RATE 115200
 
 // INPUT CALIBRATED OFFSETS HERE; SPECIFIC FOR EACH UNIT AND EACH MOUNTING CONFIGURATION!!!!
 #define XGyroOffset 11
@@ -57,8 +66,6 @@ Servo Servo2;   // Second Servo off the chassis
 #define YAccelOffset -656
 #define ZAccelOffset 1802
 
-int Servo1Pos = 0;
-int Servo2Pos = 0;
 
 float mpuPitch = 0;
 float mpuRoll = 0;
@@ -90,9 +97,6 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 
 void setup() {
-  /********* Motor Setup *********/
-  // pinMode(HeadPin, OUTPUT);
-
   /********* Stabilizer Setup *********/
   Servo1.attach(Servo1Pin);  // attaches the servo on D11 to the servo object
   Servo2.attach(Servo2Pin);  // Second servo on D11
@@ -105,19 +109,19 @@ void setup() {
     Fastwire::setup(400, true);
   #endif
 
-  Serial.begin(115200);
-  while (!Serial);      // wait for Leonardo enumeration, others continue immediately
+  if(DEBUG) Serial.begin(BAUD_RATE);
+  if(DEBUG) while (!Serial);      // wait for Leonardo enumeration, others continue immediately
 
   // initialize device
-  Serial.println(F("Initializing I2C devices..."));
+  if(DEBUG) Serial.println(F("Initializing I2C devices..."));
   mpu.initialize();
 
   // verify connection
-  Serial.println(F("Testing device connections..."));
-  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+  if(DEBUG) Serial.println(F("Testing device connections..."));
+  if(DEBUG) Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
 
   // load and configure the DMP
-  Serial.println(F("Initializing DMP"));
+  if(DEBUG) Serial.println(F("Initializing DMP"));
   devStatus = mpu.dmpInitialize();
 
   mpu.setXGyroOffset(XGyroOffset);
@@ -130,11 +134,11 @@ void setup() {
   // make sure it worked (returns 0 if so)
   if (devStatus == 0) {
     // turn on the DMP, now that it's ready
-    Serial.println(F("Enabling DMP"));
+    if(DEBUG) Serial.println(F("Enabling DMP"));
     mpu.setDMPEnabled(true);
 
     // enable Arduino interrupt detection
-    Serial.println(F("Enabling interrupt detection (Arduino external interrupt 0)"));
+    if(DEBUG) Serial.println(F("Enabling interrupt detection (Arduino external interrupt 0)"));
     mpuIntStatus = mpu.getIntStatus();
 
     // get expected DMP packet size for later comparison
@@ -143,12 +147,15 @@ void setup() {
   else {
     // ERROR!
     // 1 = initial memory load failed, 2 = DMP configuration updates failed (if it's going to break, usually the code will be 1)
-    Serial.print(F("DMP Initialization failed code = "));
-    Serial.println(devStatus);
+    if(DEBUG) Serial.print(F("DMP Initialization failed code = "));
+    if(DEBUG) Serial.println(devStatus);
   }
 
   // configure LED for output
   pinMode(LED_PIN, OUTPUT);
+  
+  /********* Motor Setup *********/
+  // pinMode(HeadPin, OUTPUT);
 
 }
 
@@ -168,7 +175,6 @@ void loop(void) {
 // ================================================================
 
 void processAccelGyro() {
-
   // Get INT_STATUS byte
   mpuIntStatus = mpu.getIntStatus();
 
@@ -179,7 +185,7 @@ void processAccelGyro() {
   if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
     // reset so we can continue cleanly
     mpu.resetFIFO();
-    Serial.println(F("FIFO overflow!"));
+    if(DEBUG) Serial.println(F("FIFO overflow!"));
     return;
   }
   
