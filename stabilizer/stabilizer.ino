@@ -35,7 +35,7 @@
 #include "MPU6050_6Axis_MotionApps20.h"
 //#include "MPU6050.h" // not necessary if using MotionApps include file
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
+#include <Wire.h>
 #endif
 
 // Set to 1 if you want the Serial hookup 
@@ -47,8 +47,8 @@ bool blinkState = true;
 Servo Servo1;   // First Servo off the chassis
 Servo Servo2;   // Second Servo off the chassis
 
-int Servo1Pin = 10;
-int Servo2Pin = 11;
+int Servo1Pin = 9;
+int Servo2Pin = 10;
 int HeadPin   = 6;
 int ButtonLEDPin = 7;
 
@@ -59,12 +59,12 @@ int Servo2Pos = 0;
 #define BAUD_RATE 115200
 
 // INPUT CALIBRATED OFFSETS HERE; SPECIFIC FOR EACH UNIT AND EACH MOUNTING CONFIGURATION!!!!
-#define XGyroOffset 11
-#define YGyroOffset 26
-#define ZGyroOffset -496
-#define XAccelOffset -3484
-#define YAccelOffset -656
-#define ZAccelOffset 1802
+#define XGyroOffset -4
+#define YGyroOffset -62
+#define ZGyroOffset 4
+#define XAccelOffset -5233
+#define YAccelOffset -1087
+#define ZAccelOffset 1082
 
 
 float mpuPitch = 0;
@@ -154,6 +154,8 @@ void setup() {
   // configure LED for output
   pinMode(LED_PIN, OUTPUT);
   
+  pinMode(ButtonLEDPin, OUTPUT);
+  
   /********* Motor Setup *********/
   // pinMode(HeadPin, OUTPUT);
 
@@ -164,6 +166,8 @@ void loop(void) {
 //  delay(MOTOR_TIME);
 //  digitalWrite(HeadPin, LOW);
 //  delay(MOTOR_TIME);
+
+  digitalWrite(ButtonLEDPin, HIGH);
   
   processAccelGyro();
 }
